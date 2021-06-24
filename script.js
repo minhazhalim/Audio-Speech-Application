@@ -3,21 +3,21 @@ const bass = document.getElementById('bass');
 const mid = document.getElementById('mid');
 const treble = document.getElementById('treble');
 const visualizer = document.getElementById('visualizer');
-const context = new AudioContext();
-const analyserNode = new AnalyserNode(context,{fftSize: 256});
-const gainNode = new GainNode(context,{gain: volume.value});
-const bassEqualizer = new BiquadFilterNode(context,{
+const audioContext = new AudioContext();
+const analyserNode = new AnalyserNode(audioContext,{fftSize: 256});
+const gainNode = new GainNode(audioContext,{gain: volume.value});
+const bassEqualizer = new BiquadFilterNode(audioContext,{
      type: 'lowshelf',
      frequency: 500,
      gain: bass.value,
 });
-const midEqualizer = new BiquadFilterNode(context,{
+const midEqualizer = new BiquadFilterNode(audioContext,{
      type: 'peaking',
      Q: Math.SQRT1_2,
      frequency: 1500,
      gain: mid.value,
 });
-const trebleEqualizer = new BiquadFilterNode(context,{
+const trebleEqualizer = new BiquadFilterNode(audioContext,{
      type: 'highshelf',
      frequency: 3000,
      gain: treble.value,
@@ -30,28 +30,28 @@ function setupEventListeners(){
      window.addEventListener('resize',resize);
      volume.addEventListener('input',event => {
           const value = parseFloat(event.target.value);
-          gainNode.gain.setTargetAtTime(value,context.currentTime,0.01);
+          gainNode.gain.setTargetAtTime(value,audioContext.currentTime,0.01);
      });
      bass.addEventListener('input',event => {
           const value = parseInt(event.target.value);
-          bassEqualizer.gain.setTargetAtTime(value,context.currentTime,0.01);
+          bassEqualizer.gain.setTargetAtTime(value,audioContext.currentTime,0.01);
      });
      mid.addEventListener('input',event => {
           const value = parseInt(event.target.value);
-          midEqualizer.gain.setTargetAtTime(value,context.currentTime,0.01);
+          midEqualizer.gain.setTargetAtTime(value,audioContext.currentTime,0.01);
      });
      treble.addEventListener('input',event => {
           const value = parseInt(event.target.value);
-          trebleEqualizer.gain.setTargetAtTime(value,context.currentTime,0.01);
+          trebleEqualizer.gain.setTargetAtTime(value,audioContext.currentTime,0.01);
      });
 }
 async function setupContext(){
      const guitar = await getGuitar();
-     if(context.state === 'suspended'){
-          await context.resume();
+     if(audioContext.state === 'suspended'){
+          await audioContext.resume();
      }
-     const source = context.createMediaStreamSource(guitar);
-     source.connect(bassEqualizer).connect(midEqualizer).connect(trebleEqualizer).connect(gainNode).connect(analyserNode).connect(context.destination);
+     const source = audioContext.createMediaStreamSource(guitar);
+     source.connect(bassEqualizer).connect(midEqualizer).connect(trebleEqualizer).connect(gainNode).connect(analyserNode).connect(audioContext.destination);
 }
 function getGuitar(){
      return navigator.mediaDevices.getUserMedia({
